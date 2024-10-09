@@ -110,28 +110,37 @@ def decode_char(char_def, char_data):
 
     return result_background, result_foreground
 
+def pad_char(data):
+    data = [0] * 2 + data
+    for i, row in enumerate(data):
+        data[i] = row << 6
+    return data
+
 def main(args):
     font_def, font_data, output = args
     with open(font_def, 'rb') as f:
         font_def = f.read()
     with open(font_data, 'rb') as f:
         font_data = f.read()
-    output = open(output, 'w')
+    output = open(output, 'wb')
 
     char_count = len(font_def) // 5
     for i in range(char_count):
         char_def = decode_char_def(font_def[i*5:i*5+5])
         data_len = get_char_data_len(char_def)
+
         background, foreground = decode_char(char_def, font_data)
-        for line in background:
-            output.write(f'{line:010b}'.replace('0', '.'))
-            output.write('\n')
-        output.write('\n')
-        for line in foreground:
-            output.write(f'{line:010b}'.replace('0', '.'))
-            output.write('\n')
-        output.write('\n')
+        background, foreground = pad_char(background), pad_char(foreground)
+
+        for i in range(16):
+            back, fore = background[i], foreground[i]
+            output.write(bytes([(back >> 8) & 0xff, (fore >> 8) & 0xff]))
+        for i in range(16):
+            back, fore = background[i], foreground[i]
+            output.write(bytes([back & 0xff, fore & 0xff]))
+
         font_data = font_data[data_len:]
+
     print(f'Decoded {char_count} characters.')
     output.close()
     return 0
