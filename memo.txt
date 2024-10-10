@@ -6,5 +6,5 @@ font properties read        0x774fb (CPU 0x0ef4fb)
 font properties read 2      0x77cb2 (CPU 0x0efcb2)
 
 
-게임 프로그램에서 계산된 각 글자의 시작 오프셋은 램(0x7f5b00~)에 포인트 테이블로 저장된다.
+게임 프로그램에서 계산된 각 글자의 시작 오프셋은 램(0x7f5b00~)에 포인터 테이블로 저장된다.
     print(f'{offset:04x}') 부분의 주석 처리를 해제하고 디코딩을 실행하면 값이 일치함.
