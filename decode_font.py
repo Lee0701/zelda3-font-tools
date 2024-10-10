@@ -125,11 +125,13 @@ def main(args):
     output = open(output, 'wb')
 
     char_count = len(font_def) // 5
+    offset = 0
     for i in range(char_count):
+        # print(f'{offset:04x}')
         char_def = decode_char_def(font_def[i*5:i*5+5])
         data_len = get_char_data_len(char_def)
 
-        background, foreground = decode_char(char_def, font_data)
+        background, foreground = decode_char(char_def, font_data[offset:offset+data_len])
         background, foreground = pad_char(background), pad_char(foreground)
 
         for i in range(16):
@@ -139,7 +141,7 @@ def main(args):
             back, fore = background[i], foreground[i]
             output.write(bytes([back & 0xff, fore & 0xff]))
 
-        font_data = font_data[data_len:]
+        offset += data_len
 
     print(f'Decoded {char_count} characters.')
     output.close()
