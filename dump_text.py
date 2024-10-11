@@ -1,12 +1,6 @@
 
 import sys
 
-def lst2int(lst):
-    result = 0
-    for digit in lst:
-        result = (result << 8) | digit
-    return result
-
 def main(args):
     tbl_file, input_file, output_file = args
     with open(tbl_file, 'r') as f:
@@ -14,7 +8,7 @@ def main(args):
     tbl_content = [line.replace('\n', '').replace('\r', '') for line in tbl_content]
     tbl_content = [line.split('=') for line in tbl_content]
     tbl_content = [entry for entry in tbl_content if len(entry) == 2]
-    tbl_content = [(int(key, 16), value) for key, value in tbl_content]
+    tbl_content = [(key.lower(), value) for key, value in tbl_content]
     tbl_content = {key: value for key, value in tbl_content}
 
     with open(input_file, 'rb') as f:
@@ -24,16 +18,18 @@ def main(args):
 
     offset = 0
     while offset < len(content):
-        for k in reversed(range(1, 4)):
+        for k in reversed(range(1, 6)):
             key = content[offset:offset+k]
-            key = lst2int(key)
+            key = ''.join(f'{k:02x}' for k in key).lower()
             if key in tbl_content:
-                value = offset + 1, tbl_content[key]
+                value = tbl_content[key]
+                value = offset + 1, value
                 result.append(value)
                 offset += k
                 break
         else:
-            value = offset + 1, f'<{content[offset]:02x}>'
+            value = f'<{key}>'
+            value = offset + 1, value
             result.append(value)
             offset += 1
 
