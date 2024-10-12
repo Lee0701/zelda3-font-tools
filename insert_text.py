@@ -17,7 +17,7 @@ def main(args):
     if len(text_data) > text_len:
         print(f'Error: Text data is too long. ({len(text_data)} > {text_len} bytes)')
         return 1
-    text_data = text_data + b'\xfb' * (text_len - len(text_data))
+    text_data = text_data + b'\x00' * (text_len - len(text_data) - 1) + b'\xfb'
 
     output_data = input_data[:text_start] + text_data + input_data[text_end:]
     with open(output_file, 'wb') as f:
