@@ -116,33 +116,43 @@ def encode_char(background, foreground, compress=True):
 
     return result_def, result_data
 
+def encode_font(input_data, compress=True):
+    result_def = []
+    result_table = []
+    result_data = []
+
+    offset = 0
+    char_len = 8 * 4 * 2 # bytes per tile * number of tiles * bits per pixel
+    for i in range(0, len(input_data), char_len):
+        char_data = input_data[i:i+char_len]
+        background, foreground = decode_input(input_data[i:i+char_len])
+        background, foreground = strip_char(background), strip_char(foreground)
+        char_def, char_data = encode_char(background, foreground, compress)
+        result_def += char_def
+        result_table += [(offset & 0xff) >> 0, (offset & 0xff00) >> 8]
+        result_data += char_data
+        offset += len(char_data)
+
+    return result_def, result_table, result_data
+
 def main(args):
     input, out_def, out_table, out_data = args
 
     with open(input, 'rb') as f:
         input_data = f.read()
-        input_data_len = len(input_data)
+        input_data = list(input_data)
 
-    out_def = open(out_def, 'wb')
-    out_table = open(out_table, 'wb')
-    out_data = open(out_data, 'wb')
+    result_def, result_table, result_data = encode_font(input_data, True)
 
-    offset = 0
-    char_len = 8 * 4 * 2 # bytes per tile * number of tiles * bits per pixel
-    for i in range(0, input_data_len, char_len):
-        background, foreground = decode_input(input_data[i:i+char_len])
-        background, foreground = strip_char(background), strip_char(foreground)
-        char_def, char_data = encode_char(background, foreground, True)
-        out_def.write(bytearray(char_def))
-        out_data.write(bytearray(char_data))
-        out_table.write(bytearray([(offset & 0xff) >> 0, (offset & 0xff00) >> 8]))
-        offset += len(char_data)
+    count = len(result_def) // 5
+    print(f"Encoded {count} characters.")
 
-    count = input_data_len // char_len
-    print(f'Encoded {count} characters.')
-    out_def.close()
-    out_table.close()
-    out_data.close()
+    with open(out_def, 'wb') as f:
+        f.write(bytearray(result_def))
+    with open(out_table, 'wb') as f:
+        f.write(bytearray(result_table))
+    with open(out_data, 'wb') as f:
+        f.write(bytearray(result_data))
 
     return 0
 
