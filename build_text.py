@@ -1,5 +1,6 @@
 
 import sys
+import yaml
 
 def int2lst(num):
     if num == 0:
@@ -24,10 +25,10 @@ def main(args):
     content = ''
 
     with open(input_file, 'r') as f:
-        for line in f:
-            line = line.replace('\n', '').replace('\r', '')
-            line = line.split('\t')[-1]
-            content += line
+        content = yaml.load(f, yaml.SafeLoader)
+    content = content.values()
+    content = [line + '<end>' for line in content]
+    content = ''.join(content)
 
     result = []
 
