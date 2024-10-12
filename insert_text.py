@@ -1,15 +1,19 @@
 
 import sys
 
-text_len = 0x7356
+table_start = 0x101000
 text_start = 0x0e0000
+text_len = 0x7356
 text_end = text_start + text_len
 
 def main(args):
-    input_file, text_file, output_file = args
+    table_file, text_file, rom_file = args
 
-    with open(input_file, 'rb') as f:
-        input_data = f.read()
+    with open(rom_file, 'rb') as f:
+        data = f.read()
+
+    with open(table_file, 'rb') as f:
+        table_data = f.read()
 
     with open(text_file, 'rb') as f:
         text_data = f.read()
@@ -19,9 +23,16 @@ def main(args):
         return 1
     text_data = text_data + b'\x00' * (text_len - len(text_data) - 1) + b'\xfb'
 
-    output_data = input_data[:text_start] + text_data + input_data[text_end:]
-    with open(output_file, 'wb') as f:
-        f.write(output_data)
+    # Patch the table
+    table_len = len(table_data)
+    table_end = table_start + table_len
+    data = data[:table_start] + table_data + data[table_end:]
+
+    # Patch the data
+    data = data[:text_start] + text_data + data[text_end:]
+
+    with open(rom_file, 'wb') as f:
+        f.write(data)
 
     return 0
 

@@ -2,6 +2,8 @@
 import sys
 import yaml
 
+end_token = '<end>'
+
 def int2lst(num):
     if num == 0:
         return [0]
@@ -12,7 +14,7 @@ def int2lst(num):
     return result[::-1]
 
 def main(args):
-    tbl_file, base_text_file, text_file, output_file = args
+    tbl_file, base_text_file, text_file, output_table_file, output_data_file = args
     with open(tbl_file, 'r') as f:
         tbl_content = f.readlines()
     tbl_content = [line.replace('\n', '').replace('\r', '') for line in tbl_content]
@@ -40,29 +42,41 @@ def main(args):
     content = [line + end_token for line in content]
     content = ''.join(content)
 
-    result = []
-    offset = 0
-    while offset < len(content):
+    output_table = []
+    output_data = []
+    output_offset = 0x8000
+    input_offset = 0
+
+    output_table += [(output_offset & 0xff), ((output_offset >> 8) & 0xff)]
+
+    while input_offset < len(content):
         for k in reversed(range(1, max_key_len)):
-            key = content[offset:offset+k]
+            key = content[input_offset:input_offset+k]
             if key in tbl_content:
                 value = tbl_content[key]
                 value = int2lst(value)
-                result += value
-                offset += k
+                output_data += value
+                output_offset += len(value)
+                input_offset += k
+                if key == end_token:
+                    output_table += [(output_offset & 0xff), ((output_offset >> 8) & 0xff)]
                 break
         else:
-            key = content[offset:offset+4]
+            key = content[input_offset:input_offset+4]
             if key.startswith('<') and key.endswith('>'):
                 value = int(key[1:-1], 16)
-                result += int2lst(int(key[1:-1], 16))
-                offset += 4
+                output_data += int2lst(int(key[1:-1], 16))
+                output_offset += 1
+                input_offset += 4
             else:
                 print(f"Invalid key: {key}")
                 return 1
 
-    with open(output_file, 'wb') as f:
-        f.write(bytearray(result))
+    with open(output_table_file, 'wb') as f:
+        f.write(bytearray(output_table))
+
+    with open(output_data_file, 'wb') as f:
+        f.write(bytearray(output_data))
 
     return 0
 
