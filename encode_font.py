@@ -117,15 +117,17 @@ def encode_char(background, foreground, compress=True):
     return result_def, result_data
 
 def main(args):
-    input, out_def, out_data = args
+    input, out_def, out_table, out_data = args
 
     with open(input, 'rb') as f:
         input_data = f.read()
         input_data_len = len(input_data)
 
     out_def = open(out_def, 'wb')
+    out_table = open(out_table, 'wb')
     out_data = open(out_data, 'wb')
 
+    offset = 0
     char_len = 8 * 4 * 2 # bytes per tile * number of tiles * bits per pixel
     for i in range(0, input_data_len, char_len):
         background, foreground = decode_input(input_data[i:i+char_len])
@@ -133,10 +135,13 @@ def main(args):
         char_def, char_data = encode_char(background, foreground, True)
         out_def.write(bytearray(char_def))
         out_data.write(bytearray(char_data))
+        out_table.write(bytearray([(offset & 0xff) >> 0, (offset & 0xff00) >> 8]))
+        offset += len(char_data)
 
     count = input_data_len // char_len
     print(f'Encoded {count} characters.')
     out_def.close()
+    out_table.close()
     out_data.close()
 
     return 0
