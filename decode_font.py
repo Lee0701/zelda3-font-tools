@@ -75,7 +75,7 @@ def decode_char(char_def, char_data):
     char_data = list(char_data)
 
     horizontal_indices = set([0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16])
-    vertical_indices = set([6, 7, 17, 18])
+    vertical_indices = set([6, 7, 8, 17, 18, 19])
 
     for i, d in enumerate(char_def):
         if i in horizontal_indices:
@@ -98,7 +98,7 @@ def decode_char(char_def, char_data):
             rows[i] |= bit
         return rows
 
-    for o in [0, 0, 8, 8]:
+    for o in [0, 0, 0, 8, 8, 8]:
         column_background = columns_background.pop(0)
         append_column(result_background, column_background, o)
         column_foreground = columns_foreground.pop(0)
@@ -127,7 +127,6 @@ def main(args):
     char_count = len(font_def) // 5
     offset = 0
     for i in range(char_count):
-        # print(f'{offset:04x}')
         char_def = decode_char_def(font_def[i*5:i*5+5])
         data_len = get_char_data_len(char_def)
 
