@@ -20,7 +20,7 @@ def decode_input(data):
 def strip_char(data):
     data = data[2:]
     for i, row in enumerate(data):
-        data[i] = row >> 6
+        data[i] = row >> 5
     return data
 
 def encode_char(background, foreground, compress=True):
@@ -28,8 +28,8 @@ def encode_char(background, foreground, compress=True):
     vertical_strips = []
 
     for i in range(0, 14):
-        background_strip = background[i] >> 2
-        foreground_strip = foreground[i] >> 2
+        background_strip = background[i] >> 3
+        foreground_strip = foreground[i] >> 3
         horizontal_strips.append(background_strip)
         horizontal_strips.append(foreground_strip)
 
@@ -48,8 +48,10 @@ def encode_char(background, foreground, compress=True):
         vertical_strips.append(background_strip)
         vertical_strips.append(foreground_strip)
 
+    append_vertical_strip(get_vertical_strip(0, 6, 2))
     append_vertical_strip(get_vertical_strip(0, 6, 1))
     append_vertical_strip(get_vertical_strip(0, 6, 0))
+    append_vertical_strip(get_vertical_strip(6, 14, 2))
     append_vertical_strip(get_vertical_strip(6, 14, 1))
     append_vertical_strip(get_vertical_strip(6, 14, 0))
 
@@ -66,7 +68,7 @@ def encode_char(background, foreground, compress=True):
             result_data.append(fore)
         defs.append(def_value)
 
-    for i in range(2):
+    for i in range(3):
         back, fore = vertical_strips[i*2], vertical_strips[i*2 + 1]
         def_value = 0
         if back != 0 or not compress:
@@ -77,10 +79,8 @@ def encode_char(background, foreground, compress=True):
             result_data.append(fore)
         defs.append(def_value)
 
-    defs.append(0)
-
     horizontal_strips = horizontal_strips[6*2:]
-    vertical_strips = vertical_strips[2*2:]
+    vertical_strips = vertical_strips[3*2:]
 
     for i in range(8):
         back, fore = horizontal_strips[i*2], horizontal_strips[i*2 + 1]
@@ -93,7 +93,7 @@ def encode_char(background, foreground, compress=True):
             result_data.append(fore)
         defs.append(def_value)
 
-    for i in range(2):
+    for i in range(3):
         back, fore = vertical_strips[i*2], vertical_strips[i*2 + 1]
         def_value = 0
         if back != 0 or not compress:
@@ -103,8 +103,6 @@ def encode_char(background, foreground, compress=True):
             def_value |= 1
             result_data.append(fore)
         defs.append(def_value)
-
-    defs.append(0)
 
     result_def = []
     for i in range(5):

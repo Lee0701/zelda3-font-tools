@@ -113,7 +113,7 @@ def decode_char(char_def, char_data):
 def pad_char(data):
     data = [0] * 2 + data
     for i, row in enumerate(data):
-        data[i] = row << 6
+        data[i] = row << 5
     return data
 
 def main(args):
